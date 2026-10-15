@@ -10,6 +10,8 @@ import argparse
 app = Flask(__name__)
 
 import logging
+import base64
+
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.DEBUG)
 
@@ -51,12 +53,34 @@ def rawimage():
 
 @app.route('/api/dotproduct', methods=['POST'])
 def dotproduct():
-    pass
+    data = request.get_json()
+    a = data['a']
+    b = data['b']
+
+    if len(a) != len(b):
+        return {'error': 'Vectors must have equal length'}, 400
+
+    result = sum(x * y for x, y in zip(a, b))
+    return {'dotproduct': result}
 
 
 @app.route('/api/jsonimage', methods=['POST'])
 def jsonimage():
-    pass
+    data = request.get_json()
+
+    try:
+        image_data = base64.b64decode(data['image'])
+        img = Image.open(io.BytesIO(image_data))
+
+        response = {
+            'width': img.size[0],
+            'height': img.size[1]
+        }
+
+    except Exception:
+        response = {'width': 0, 'height': 0}
+
+    return response
 
 
 if __name__ == '__main__':
